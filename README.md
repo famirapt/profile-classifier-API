@@ -1,92 +1,78 @@
+```markdown
+# Insighta Labs: Intelligence Query Engine
 
----
-
-### **README.md**
-
-# Profile Classification & Persistence API
-
-A high-performance FastAPI service that integrates multiple external APIs to classify names based on gender, age, and nationality. This system implements data persistence, idempotency handling, and complex filtering logic as part of the HNG Backend Stage 1 Assessment.
+A production-grade Demographic Intelligence API built with FastAPI. This system serves as a high-performance query engine capable of segmenting large datasets through advanced filtering and rule-based Natural Language Processing.
 
 ## 🚀 Features
 
-* **Multi-API Integration:** Concurrently fetches data from Genderize, Agify, and Nationalize.
-* **Data Classification:** Categorizes profiles into age groups (`child`, `teenager`, `adult`, `senior`).
-* **Persistence:** Stores processed data in a PostgreSQL database (with SQLite support for local testing).
-* **Idempotency:** Prevents duplicate records for the same name; returns existing data if available.
-* **UUID v7:** Uses time-ordered UUIDs for primary keys to ensure database efficiency.
-* **CORS Enabled:** Configured for cross-origin requests (`*`) to facilitate automated grading.
-
----
+* **Advanced Filtering Engine:** Supports combined complex queries (gender, age ranges, country IDs, and probability thresholds).
+* **Natural Language Query (NLQ):** A custom, non-AI parser that interprets plain English queries like *"young males from nigeria"* or *"females above 30"*.
+* **Optimized Pagination & Sorting:** Efficiently handles the 2026 record dataset using SQL-level pagination (`limit`, `offset`) and dynamic sorting.
+* **UUID v7 Integration:** Uses time-ordered UUIDs for primary keys to ensure optimal database indexing performance.
+* **Automatic Data Seeding:** System automatically detects an empty database on startup and seeds it with the required 2026 demographic profiles.
+* **Environment Aware:** Automatically switches between local SQLite for development and PostgreSQL for production (Railway).
 
 ## 🛠️ Tech Stack
 
-* **Language:** Python 3.12
-* **Framework:** [FastAPI](https://fastapi.tiangolo.com/)
+* **Framework:** FastAPI
 * **Database:** PostgreSQL (Production) / SQLite (Local)
 * **ORM:** SQLAlchemy
-* **Async HTTP:** HTTPX
+* **ID Standard:** UUID v7 (via `uuid6` library)
+* **Language:** Python 3.12
 
----
+## 🧠 Natural Language Search Logic
 
-## 🏁 Getting Started
+The `/api/profiles/search` endpoint implements a rule-based interpretation engine:
 
-### 1. Installation
-```bash
-# Clone the repository
-git clone https://github.com/yourusername/your-repo-name.git
-cd your-repo-name
+| Keyword | Mapping / Logic |
+| :--- | :--- |
+| **"young"** | Filters for ages between **16 and 24** |
+| **"above X"** | Sets `min_age` to X |
+| **"under X"** | Sets `max_age` to X |
+| **"males/females"** | Filters by gender column |
+| **"from [Country]"** | Maps country names (e.g., Nigeria, Kenya) to ISO Alpha-2 codes |
 
-# Create virtual environment
-python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
+## 📡 API Reference
 
-# Install dependencies
-pip install -r requirements.txt
+### 1. Natural Language Search
+**Endpoint:** `GET /api/profiles/search`  
+**Query Param:** `q=[search string]`  
+**Example:** `/api/profiles/search?q=young males from nigeria`
+
+### 2. Advanced Filtering
+**Endpoint:** `GET /api/profiles`  
+**Supported Params:** `gender`, `age_group`, `country_id`, `min_age`, `max_age`, `min_gender_probability`, `sort_by`, `order`, `page`, `limit`.  
+**Example:** `/api/profiles?gender=female&min_age=21&sort_by=age&order=desc`
+
+## ⚙️ Installation & Setup
+
+1. **Clone the repository:**
+   ```bash
+   git clone <your-repo-url>
+   cd <repo-folder>
+   ```
+
+2. **Install dependencies:**
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+3. **Run the application:**
+   The system will automatically seed the database on the first run.
+   ```bash
+   uvicorn main:app --reload
+   ```
+
+## ⚠️ Error Responses
+All errors return a standardized JSON structure:
+```json
+{
+  "status": "error",
+  "message": "Invalid query parameters"
+}
 ```
 
-### 2. Environment Variables
-Create a `.env` file or set environment variables in your deployment platform:
-* `DATABASE_URL`: Your PostgreSQL connection string (defaults to local SQLite if not provided).
-
-### 3. Running Locally
-```bash
-uvicorn main:app --reload
+---
+**Author:** [Your Name]  
+**Task:** HNG Internship Stage 2 - Backend Track
 ```
-The API will be available at `http://127.0.0.1:8000`. You can view the interactive documentation at `/docs`.
-
----
-
-## 📡 API Endpoints
-
-### **1. Create Profile**
-`POST /api/profiles`
-* **Body:** `{"name": "ella"}`
-* **Behavior:** Fetches data, applies logic, and saves. Returns existing record if name already exists.
-
-### **2. Get Single Profile**
-`GET /api/profiles/{id}`
-* **Response:** Detailed JSON of the stored profile.
-
-### **3. Get All Profiles (with Filtering)**
-`GET /api/profiles`
-* **Optional Query Params:** `gender`, `country_id`, `age_group` (Case-insensitive).
-* **Example:** `/api/profiles?gender=female&country_id=US`
-
-### **4. Delete Profile**
-`DELETE /api/profiles/{id}`
-* **Response:** `204 No Content`.
-
----
-
-## 🧪 Error Handling
-The API adheres to strict error formatting:
-* `400 Bad Request`: Missing/invalid name.
-* `404 Not Found`: ID does not exist.
-* `502 Bad Gateway`: Upstream API (Agify/Genderize/Nationalize) returned invalid data.
-
----
-
-## 📄 License
-This project is for educational purposes as part of the HNG Internship.
-
----
