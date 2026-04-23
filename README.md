@@ -43,11 +43,10 @@ The `/api/profiles/search` endpoint implements a rule-based interpretation engin
 - **Query Param:** `q=[search string]`  
 - **Example:**  
 ```
-
 /api/profiles/search?q=young males from nigeria
 
 
-
+```
 ### 2. Advanced Filtering
 - **Endpoint:** `GET /api/profiles`  
 - **Supported Params:**  
@@ -56,7 +55,6 @@ The `/api/profiles/search` endpoint implements a rule-based interpretation engin
 
 - **Example:**  
 ```
-
 /api/profiles?gender=female&min_age=21&sort_by=age&order=desc
 
 
